@@ -51,8 +51,8 @@ func get(urlStr string) []string {
 		Host:   reqUrl.Host,
 	}
 	/*
-		fmt.Println("確認2", baseUrl.Scheme) // https
-		fmt.Println("確認3", baseUrl.Host) // gophercises.com
+		fmt.Println("スキーマ", baseUrl.Scheme) // https
+		fmt.Println("ホスト", baseUrl.Host) // gophercises.com
 	*/
 	base := baseUrl.String()
 	// fmt.Println("Request URL:", reqUrl.String())
