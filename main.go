@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/xml"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	// "github.com/gophercises/link"
@@ -21,15 +23,39 @@ import (
 	6. print out XML 13:55
 */
 
+const xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+type loc struct {
+	Value string `xml:"loc"`
+}
+
+type urlset struct {
+	Urls  []loc  `xml:"url"`
+	Xmlns string `xml:"xmlns,attr"`
+}
+
 func main() {
 	urlFlag := flag.String("url", "https://gophercises.com/", "the url that you waant to build a sitemap for")
-	maxDepth := flag.Int("depth", 2, "the maximum number of links deep to traverse")
+	maxDepth := flag.Int("depth", 3, "the maximum number of links deep to traverse")
 	flag.Parse()
 
 	pages := bfs(*urlFlag, *maxDepth)
-	for _, page := range pages {
-		fmt.Println(page)
+	toXml := urlset{
+		Xmlns: xmlns,
 	}
+	for _, page := range pages {
+		toXml.Urls = append(toXml.Urls, loc{page})
+	}
+
+	//func NewEncoder(w io.Writer) *Encoder
+	// os.Stdoutは*File型
+	// TODO:io.Writer型じゃなくね？
+	enc := xml.NewEncoder(os.Stdout)
+	enc.Indent("", "  ")
+	if err := enc.Encode(toXml); err != nil {
+		panic(err)
+	}
+	fmt.Println()
 }
 
 func bfs(urlStr string, maxDepth int) []string {
@@ -38,16 +64,16 @@ func bfs(urlStr string, maxDepth int) []string {
 	seen := make(map[string]struct{})
 	var q map[string]struct{}
 	nq := map[string]struct{}{
+		// TODO:ここはなんでstruct{}{}??struct{}ではない？
 		urlStr: struct{}{},
 	}
+
 	for i := 0; i < maxDepth; i++ {
-		fmt.Println("■■■")
-		fmt.Println(q)
-		fmt.Println(nq)
 		q, nq = nq, make(map[string]struct{})
-		fmt.Println(q)
-		fmt.Println(nq)
 		for url, _ := range q {
+			// カンマOK慣用句
+			// urlが存在すれば_に値がセットされ、OKは真となる
+			// 存在しなければ_はゼロがセットされ、okは偽となる
 			if _, ok := seen[url]; ok {
 				continue
 			}
