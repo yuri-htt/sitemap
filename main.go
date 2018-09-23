@@ -70,6 +70,9 @@ func bfs(urlStr string, maxDepth int) []string {
 
 	for i := 0; i < maxDepth; i++ {
 		q, nq = nq, make(map[string]struct{})
+		if len(q) == 0 {
+			break
+		}
 		for url, _ := range q {
 			// カンマOK慣用句
 			// urlが存在すれば_に値がセットされ、OKは真となる
@@ -79,6 +82,9 @@ func bfs(urlStr string, maxDepth int) []string {
 			}
 			seen[url] = struct{}{}
 			for _, link := range get(url) {
+				if _, ok := seen[link]; !ok {
+					nq[link] = struct{}{}
+				}
 				nq[link] = struct{}{}
 			}
 		}
